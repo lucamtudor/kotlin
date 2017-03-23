@@ -25,8 +25,7 @@
     <property environment="env"/>
     <property name="tools.jar" value="${env.JDK_18}/lib/tools.jar"/>
 
-    <property name="java.target" value="1.8"/>
-    <property name="java.target.1.6" value="1.6"/>
+    <property name="java.target" value="1.6"/>
 
     <condition property="bootstrap.or.local.build" value="true" else="false">
         <or>
@@ -856,7 +855,7 @@
             </java>
 
             <javac2 srcdir="${toString:src.dirset}" destdir="@{output}" debug="true" debuglevel="lines,vars,source"
-                    includeAntRuntime="false" source="${java.target.1.6}" target="${java.target.1.6}">
+                    includeAntRuntime="false" source="${java.target}" target="${java.target}">
                 <skip pattern="kotlin/Metadata"/>
                 <classpath>
                     <path refid="classpath.path"/>
