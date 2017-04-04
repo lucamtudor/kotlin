@@ -24,10 +24,10 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.incremental.KotlinLookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupLocation
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
-import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtPsiUtil
 import org.jetbrains.kotlin.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.jetbrains.kotlin.resolve.*
@@ -40,36 +40,35 @@ import org.jetbrains.kotlin.utils.Printer
 import java.util.*
 
 interface IndexedImports {
-    val imports: List<KtImportDirective>
-    fun importsForName(name: Name): Collection<KtImportDirective>
+    val imports: List<Import>
+    fun importsForName(name: Name): Collection<Import>
 }
 
-class AllUnderImportsIndexed(allImports: Collection<KtImportDirective>) : IndexedImports {
+class AllUnderImportsIndexed(allImports: Collection<Import>) : IndexedImports {
     override val imports = allImports.filter { it.isAllUnder }
     override fun importsForName(name: Name) = imports
 }
 
-class ExplicitImportsIndexed(allImports: Collection<KtImportDirective>) : IndexedImports {
+class ExplicitImportsIndexed(allImports: Collection<Import>) : IndexedImports {
     override val imports = allImports.filter { !it.isAllUnder }
 
-    private val nameToDirectives: ListMultimap<Name, KtImportDirective> by lazy {
-        val builder = ImmutableListMultimap.builder<Name, KtImportDirective>()
+    private val nameToImports: ListMultimap<Name, Import> by lazy {
+        val builder = ImmutableListMultimap.builder<Name, Import>()
 
-        for (directive in imports) {
-            val path = directive.importPath ?: continue // parse error
-            val importedName = path.importedName ?: continue // parse error
-            builder.put(importedName, directive)
+        for (import in imports) {
+            val importedName = import.importedName ?: continue // parse error
+            builder.put(importedName, import)
         }
 
         builder.build()
     }
 
-    override fun importsForName(name: Name) = nameToDirectives.get(name)
+    override fun importsForName(name: Name): List<Import> = nameToImports.get(name)
 }
 
 interface ImportResolver {
     fun forceResolveAllImports()
-    fun forceResolveImport(importDirective: KtImportDirective)
+    fun forceResolveImport(import: Import)
 }
 
 class LazyImportResolver(
@@ -84,22 +83,21 @@ class LazyImportResolver(
         private val packageFragment: PackageFragmentDescriptor
 ) : ImportResolver {
     private val importedScopesProvider = storageManager.createMemoizedFunctionWithNullableValues {
-        directive: KtImportDirective ->
-
-        val import = directive.importPath ?: return@createMemoizedFunctionWithNullableValues null
+        import: Import ->
 
         qualifiedExpressionResolver.processImportReference(
-                import, moduleDescriptor, traceForImportResolve, excludedImportNames, packageFragment, directive.suppressDiagnosticsInDebugMode()
+                import, moduleDescriptor, traceForImportResolve, excludedImportNames, packageFragment,
+                import.importDirective?.suppressDiagnosticsInDebugMode() ?: false
         )
     }
 
     private val forceResolveImportDirective = storageManager.createMemoizedFunction {
-        directive: KtImportDirective ->
-        val scope = importedScopesProvider(directive)
+        import: Import ->
+        val scope = importedScopesProvider(import)
         if (scope is LazyExplicitImportScope) {
             val allDescriptors = scope.storeReferencesToDescriptors()
             PlatformClassesMappedToKotlinChecker.checkPlatformClassesMappedToKotlin(
-                    platformToKotlinClassMap, traceForImportResolve, directive, allDescriptors
+                    platformToKotlinClassMap, traceForImportResolve, import, allDescriptors
             )
         }
 
@@ -107,49 +105,53 @@ class LazyImportResolver(
     }
 
     override fun forceResolveAllImports() {
-        val explicitClassImports = HashMultimap.create<String, KtImportDirective>()
-        for (importDirective in indexedImports.imports) {
-            forceResolveImport(importDirective)
-            val scope = importedScopesProvider(importDirective)
+        val explicitClassImports = HashMultimap.create<Name, Import>()
+        for (import in indexedImports.imports) {
+            forceResolveImport(import)
+            val scope = importedScopesProvider(import)
 
-            val alias = KtPsiUtil.getAliasName(importDirective)?.identifier
-            if (scope != null && alias != null) {
-                if (scope.getContributedClassifier(Name.identifier(alias), KotlinLookupLocation(importDirective)) != null) {
-                    explicitClassImports.put(alias, importDirective)
+            val importedName = import.importedName
+            if (scope != null && importedName != null) {
+                val location = import.importDirective?.let { KotlinLookupLocation(import.importDirective!!) } ?: NoLookupLocation.FROM_SYNTHETIC_SCOPE
+                if (scope.getContributedClassifier(importedName, location) != null) {
+                    explicitClassImports.put(importedName, import)
                 }
             }
 
-            checkResolvedImportDirective(importDirective)
+            checkResolvedImportDirective(import)
         }
-        for ((alias, import) in explicitClassImports.entries()) {
-            if (alias.all { it == '_' }) {
-                traceForImportResolve.report(Errors.UNDERSCORE_IS_RESERVED.on(import))
+        for ((importedName, import) in explicitClassImports.entries()) {
+            if (importedName.asString().all { it == '_' }) {
+                traceForImportResolve.report(Errors.UNDERSCORE_IS_RESERVED.on(import.importDirective!!))
             }
         }
-        for (alias in explicitClassImports.keySet()) {
-            val imports = explicitClassImports.get(alias)
+        for (importedName in explicitClassImports.keySet()) {
+            val imports = explicitClassImports.get(importedName)
             if (imports.size > 1) {
                 imports.forEach {
-                    traceForImportResolve.report(Errors.CONFLICTING_IMPORT.on(it, alias))
+                    traceForImportResolve.report(Errors.CONFLICTING_IMPORT.on(it.importDirective!!, importedName.asString()))
                 }
             }
         }
     }
 
-    private fun checkResolvedImportDirective(importDirective: KtImportDirective) {
-        val importedReference = KtPsiUtil.getLastReference(importDirective.importedReference ?: return) ?: return
-        val importedDescriptor = traceForImportResolve.bindingContext.get(BindingContext.REFERENCE_TARGET, importedReference) ?: return
+    private fun checkResolvedImportDirective(import: Import) {
+        val importDirective = import.importDirective ?: return
+
+        val importedReference = importDirective.importedReference ?: return
+        val lastReference = KtPsiUtil.getLastReference(importedReference) ?: return
+        val importedDescriptor = traceForImportResolve.bindingContext.get(BindingContext.REFERENCE_TARGET, lastReference) ?: return
 
         val aliasName = importDirective.aliasName
 
         if (importedDescriptor is FunctionDescriptor && importedDescriptor.isOperator &&
             aliasName != null && OperatorConventions.isConventionName(Name.identifier(aliasName))) {
-            traceForImportResolve.report(Errors.OPERATOR_RENAMED_ON_IMPORT.on(importedReference))
+            traceForImportResolve.report(Errors.OPERATOR_RENAMED_ON_IMPORT.on(lastReference))
         }
     }
 
-    override fun forceResolveImport(importDirective: KtImportDirective) {
-        forceResolveImportDirective(importDirective)
+    override fun forceResolveImport(import: Import) {
+        forceResolveImportDirective(import)
     }
 
     fun <D : DeclarationDescriptor> selectSingleFromImports(
@@ -160,8 +162,8 @@ class LazyImportResolver(
             val imports = indexedImports.importsForName(name)
 
             var target: D? = null
-            for (directive in imports) {
-                val resolved = descriptorSelector(getImportScope(directive), name) ?: continue
+            for (import in imports) {
+                val resolved = descriptorSelector(getImportScope(import), name) ?: continue
                 if (target != null && target != resolved) return null // ambiguity
                 target = resolved
             }
@@ -185,8 +187,8 @@ class LazyImportResolver(
         }
     }
 
-    fun getImportScope(directive: KtImportDirective): ImportingScope {
-        return importedScopesProvider(directive) ?: ImportingScope.Empty
+    fun getImportScope(import: Import): ImportingScope {
+        return importedScopesProvider(import) ?: ImportingScope.Empty
     }
 }
 
@@ -242,11 +244,10 @@ class LazyImportScope(
 
         return importResolver.storageManager.compute {
             val descriptors = LinkedHashSet<DeclarationDescriptor>()
-            for (directive in importResolver.indexedImports.imports) {
-                val importPath = directive.importPath ?: continue
-                val importedName = importPath.importedName
+            for (import in importResolver.indexedImports.imports) {
+                val importedName = import.importedName
                 if (importedName == null || nameFilter(importedName)) {
-                    descriptors.addAll(importResolver.getImportScope(directive).getContributedDescriptors(kindFilter, nameFilter))
+                    descriptors.addAll(importResolver.getImportScope(import).getContributedDescriptors(kindFilter, nameFilter))
                 }
             }
             descriptors

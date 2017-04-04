@@ -103,7 +103,8 @@ class LazyTopDownAnalyzer(
 
                 override fun visitImportDirective(importDirective: KtImportDirective) {
                     val importResolver = fileScopeProvider.getImportResolver(importDirective.containingKtFile)
-                    importResolver.forceResolveImport(importDirective)
+                    val import = importDirective.importPath ?: return
+                    importResolver.forceResolveImport(import)
                 }
 
                 override fun visitClassOrObject(classOrObject: KtClassOrObject) {

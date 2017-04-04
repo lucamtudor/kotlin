@@ -24,12 +24,8 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtImportsFactory
-import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.ImportPath
-import org.jetbrains.kotlin.resolve.QualifiedExpressionResolver
-import org.jetbrains.kotlin.resolve.TemporaryBindingTrace
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
@@ -76,8 +72,8 @@ class FileScopeFactory(
             private val packageFragment: PackageFragmentDescriptor,
             private val packageView: PackageViewDescriptor
     ) {
-        val imports = file.importDirectives
-        val aliasImportNames = imports.mapNotNull { if (it.aliasName != null) it.importedFqName else null }
+        val imports = file.importDirectives.mapNotNull { it.importPath }
+        val aliasImportNames = imports.mapNotNull { if (it.hasAlias) it.fqName else null }
 
         val explicitImportResolver = createImportResolver(ExplicitImportsIndexed(imports), bindingTrace)
         val allUnderImportResolver = createImportResolver(AllUnderImportsIndexed(imports), bindingTrace) // TODO: should we count excludedImports here also?
@@ -97,12 +93,12 @@ class FileScopeFactory(
                 allUnderImportResolver.forceResolveAllImports()
             }
 
-            override fun forceResolveImport(importDirective: KtImportDirective) {
-                if (importDirective.isAllUnder) {
-                    allUnderImportResolver.forceResolveImport(importDirective)
+            override fun forceResolveImport(import: Import) {
+                if (import.isAllUnder) {
+                    allUnderImportResolver.forceResolveImport(import)
                 }
                 else {
-                    explicitImportResolver.forceResolveImport(importDirective)
+                    explicitImportResolver.forceResolveImport(import)
                 }
             }
         }
