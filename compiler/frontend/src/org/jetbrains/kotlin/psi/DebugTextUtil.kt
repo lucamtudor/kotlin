@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.psi.debugText
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.resolve.hasAlias
 
 // invoke this instead of getText() when you need debug text to identify some place in PSI without storing the element itself
 // this is need to avoid unnecessary file parses

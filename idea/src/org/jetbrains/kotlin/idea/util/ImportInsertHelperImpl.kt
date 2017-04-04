@@ -36,6 +36,8 @@ import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.resolve.descriptorUtil.getImportableDescriptor
+import org.jetbrains.kotlin.resolve.hasAlias
+import org.jetbrains.kotlin.resolve.importedName
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.DefaultImportProvider
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter

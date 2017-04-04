@@ -50,6 +50,7 @@ import org.jetbrains.kotlin.psi.KtCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.resolve.hasAlias
 import java.util.*
 
 class KotlinUnusedImportInspection : AbstractKotlinInspection() {

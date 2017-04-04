@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.asJava.namedUnwrappedElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.resolve.hasAlias
 
 /**
  * Returns FqName for given declaration (either Java or Kotlin)
