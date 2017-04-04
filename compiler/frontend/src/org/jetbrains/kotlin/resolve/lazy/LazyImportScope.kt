@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtPsiUtil
-import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
@@ -86,8 +86,10 @@ class LazyImportResolver(
     private val importedScopesProvider = storageManager.createMemoizedFunctionWithNullableValues {
         directive: KtImportDirective ->
 
+        val import = directive.importPath ?: return@createMemoizedFunctionWithNullableValues null
+
         qualifiedExpressionResolver.processImportReference(
-                directive, moduleDescriptor, traceForImportResolve, excludedImportNames, packageFragment
+                import, moduleDescriptor, traceForImportResolve, excludedImportNames, packageFragment, directive.suppressDiagnosticsInDebugMode()
         )
     }
 

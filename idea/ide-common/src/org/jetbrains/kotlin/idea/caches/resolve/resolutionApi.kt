@@ -91,8 +91,10 @@ fun ResolutionFacade.resolveImportReference(
         moduleDescriptor: ModuleDescriptor,
         fqName: FqName
 ): Collection<DeclarationDescriptor> {
-    val importDirective = KtPsiFactory(project).createImportDirective(ImportPath(fqName, false))
     val qualifiedExpressionResolver = this.getFrontendService(moduleDescriptor, QualifiedExpressionResolver::class.java)
     return qualifiedExpressionResolver.processImportReference(
-            importDirective, moduleDescriptor, BindingTraceContext(), excludedImportNames = emptyList(), packageFragmentForVisibilityCheck = null)?.getContributedDescriptors() ?: emptyList()
+            ImportPath(fqName, false), moduleDescriptor, BindingTraceContext(), excludedImportNames = emptyList(),
+            packageFragmentForVisibilityCheck = null,
+            suppressDiagnosticsInDebugMode = false
+    )?.getContributedDescriptors() ?: emptyList()
 }
