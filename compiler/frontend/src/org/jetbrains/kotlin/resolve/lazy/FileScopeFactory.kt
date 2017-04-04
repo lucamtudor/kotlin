@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtImportsFactory
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
@@ -44,16 +43,10 @@ class FileScopeFactory(
         private val moduleDescriptor: ModuleDescriptor,
         private val qualifiedExpressionResolver: QualifiedExpressionResolver,
         private val bindingTrace: BindingTrace,
-        private val ktImportsFactory: KtImportsFactory,
         private val platformToKotlinClassMap: PlatformToKotlinClassMap,
         private val defaultImportProvider: DefaultImportProvider,
         private val languageVersionSettings: LanguageVersionSettings
 ) {
-    /* avoid constructing psi for default imports prematurely (time consuming in some scenarios) */
-    private val defaultImports by storageManager.createLazyValue {
-        ktImportsFactory.createImportDirectives(defaultImportProvider.defaultImports)
-    }
-
     fun createScopesForFile(file: KtFile, existingImports: ImportingScope? = null): FileScopes {
         val packageView = moduleDescriptor.getPackage(file.packageFqName)
         val packageFragment = topLevelDescriptorProvider.getPackageFragment(file.packageFqName)
@@ -117,16 +110,16 @@ class FileScopeFactory(
 
             val extraImports = file.originalFile.virtualFile?.let { vFile ->
                 val scriptExternalDependencies = getScriptExternalDependencies(vFile, file.project)
-                ktImportsFactory.createImportDirectives(scriptExternalDependencies?.imports?.map { ImportPath.fromString(it) }.orEmpty())
+                scriptExternalDependencies?.imports?.map { ImportPath.fromString(it) }
             }
 
-            val allImplicitImports = defaultImports concat extraImports
+            val allImplicitImports = defaultImportProvider.defaultImports concat extraImports
 
             val defaultImportsFiltered = if (aliasImportNames.isEmpty()) { // optimization
                 allImplicitImports
             }
             else {
-                allImplicitImports.filter { it.isAllUnder || it.importedFqName !in aliasImportNames }
+                allImplicitImports.filter { it.isAllUnder || it.fqName !in aliasImportNames }
             }
 
             val defaultExplicitImportResolver = createImportResolver(ExplicitImportsIndexed(defaultImportsFiltered), tempTrace)
