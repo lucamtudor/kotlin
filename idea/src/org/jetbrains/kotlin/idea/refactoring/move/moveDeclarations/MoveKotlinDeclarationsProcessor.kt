@@ -80,7 +80,7 @@ interface Mover : (KtNamedDeclaration, KtElement) -> KtNamedDeclaration {
     }
 }
 
-class MoveDeclarationsDescriptor @JvmOverloads constructor(
+class MoveDeclarationsDescriptor(
         val project: Project,
         val elementsToMove: Collection<KtNamedDeclaration>,
         val moveTarget: KotlinMoveTarget,
@@ -90,8 +90,7 @@ class MoveDeclarationsDescriptor @JvmOverloads constructor(
         val scanEntireFile: Boolean = false,
         val deleteSourceFiles: Boolean = false,
         val moveCallback: MoveCallback? = null,
-        val openInEditor: Boolean = false,
-        val allElementsToMove: List<PsiElement>? = null
+        val openInEditor: Boolean = false
 )
 
 class ConflictUsageInfo(element: PsiElement, val messages: Collection<String>) : UsageInfo(element)
@@ -184,13 +183,7 @@ class MoveKotlinDeclarationsProcessor(
         }
 
         val usages = ArrayList<UsageInfo>()
-        val conflictChecker = MoveConflictChecker(
-                project,
-                elementsToMove,
-                descriptor.moveTarget,
-                elementsToMove.first(),
-                allElementsToMove = descriptor.allElementsToMove
-        )
+        val conflictChecker = MoveConflictChecker(project, elementsToMove, descriptor.moveTarget, elementsToMove.first())
         for ((sourceFile, kotlinToLightElements) in kotlinToLightElementsBySourceFile) {
             val internalUsages = LinkedHashSet<UsageInfo>()
             val externalUsages = LinkedHashSet<UsageInfo>()
