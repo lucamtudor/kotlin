@@ -34,8 +34,8 @@ import java.util.*
 object ImportPathComparator : Comparator<ImportPath> {
     override fun compare(import1: ImportPath, import2: ImportPath): Int {
         // alias imports placed last
-        if (import1.hasAlias() != import2.hasAlias()) {
-            return if (import1.hasAlias()) +1 else -1
+        if (import1.hasAlias != import2.hasAlias) {
+            return if (import1.hasAlias) +1 else -1
         }
 
         // standard library imports last

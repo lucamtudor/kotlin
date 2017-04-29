@@ -72,7 +72,7 @@ class PlainTextPasteImportResolver(val dataForConversion: DataForConversion, val
         fun tryConvertKotlinImport(importDirective: KtImportDirective) {
             val importPath = importDirective.importPath
             val importedReference = importDirective.importedReference
-            if (importPath != null && !importPath.hasAlias() && importedReference is KtDotQualifiedExpression) {
+            if (importPath != null && !importPath.hasAlias && importedReference is KtDotQualifiedExpression) {
                 val receiver = importedReference
                         .receiverExpression
                         .referenceExpression()

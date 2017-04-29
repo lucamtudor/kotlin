@@ -259,7 +259,7 @@ class OptimizedImportsBuilder(
             for (importPath in importsToGenerate) {
                 append("import ")
                 append(importPath.pathStr)
-                if (importPath.hasAlias()) {
+                if (importPath.hasAlias) {
                     append("=")
                     append(importPath.alias!!.render())
                 }

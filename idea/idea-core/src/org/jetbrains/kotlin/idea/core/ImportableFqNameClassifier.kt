@@ -38,7 +38,7 @@ class ImportableFqNameClassifier(private val file: KtFile) {
             if (importPath.isAllUnder) {
                 allUnderImports.add(fqName)
             }
-            else if (!importPath.hasAlias()) {
+            else if (!importPath.hasAlias) {
                 preciseImports.add(fqName)
                 preciseImportPackages.add(fqName.parent())
             } else {

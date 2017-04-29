@@ -56,7 +56,7 @@ private object DebugTextBuildingVisitor : KtVisitor<String, Unit>() {
 
     override fun visitImportDirective(importDirective: KtImportDirective, data: Unit?): String? {
         val importPath = importDirective.importPath ?: return "import <invalid>"
-        val aliasStr = if (importPath.hasAlias()) " as " + importPath.alias!!.asString() else ""
+        val aliasStr = if (importPath.hasAlias) " as " + importPath.alias!!.asString() else ""
         return "import ${importPath.pathStr}" + aliasStr
     }
 

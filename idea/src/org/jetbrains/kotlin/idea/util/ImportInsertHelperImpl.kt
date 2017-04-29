@@ -189,7 +189,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 
             val importsFromPackage = imports.count {
                 val path = it.importPath
-                path != null && !path.isAllUnder && !path.hasAlias() && path.fqName.parent() == containerFqName
+                path != null && !path.isAllUnder && !path.hasAlias && path.fqName.parent() == containerFqName
             }
             val nameCountToUseStar = if (target.containingDeclaration is ClassDescriptor)
                 codeStyleSettings.NAME_COUNT_TO_USE_STAR_IMPORT_FOR_MEMBERS

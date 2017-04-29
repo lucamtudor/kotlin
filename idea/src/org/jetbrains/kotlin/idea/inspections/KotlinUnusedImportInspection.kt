@@ -71,7 +71,7 @@ class KotlinUnusedImportInspection : AbstractKotlinInspection() {
             val explicitlyImportedFqNames = directives
                     .asSequence()
                     .mapNotNull { it.importPath }
-                    .filter { !it.isAllUnder && !it.hasAlias() }
+                    .filter { !it.isAllUnder && !it.hasAlias }
                     .map { it.fqName }
                     .toSet()
 
