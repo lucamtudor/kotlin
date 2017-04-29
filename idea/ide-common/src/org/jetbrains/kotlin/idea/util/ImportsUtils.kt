@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.resolve.Import
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getReferenceTargets
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getImportableDescriptor
@@ -31,8 +31,8 @@ import org.jetbrains.kotlin.resolve.hasAlias
 import org.jetbrains.kotlin.types.KotlinType
 import java.util.*
 
-object ImportPathComparator : Comparator<ImportPath> {
-    override fun compare(import1: ImportPath, import2: ImportPath): Int {
+object ImportPathComparator : Comparator<Import> {
+    override fun compare(import1: Import, import2: Import): Int {
         // alias imports placed last
         if (import1.hasAlias != import2.hasAlias) {
             return if (import1.hasAlias) +1 else -1
@@ -48,7 +48,7 @@ object ImportPathComparator : Comparator<ImportPath> {
         return import1.toString().compareTo(import2.toString())
     }
 
-    private fun isJavaOrKotlinStdlibImport(path: ImportPath): Boolean {
+    private fun isJavaOrKotlinStdlibImport(path: Import): Boolean {
         val s = path.fqName.asString()
         return s.startsWith("java.") || s.startsWith("javax.")|| s.startsWith("kotlin.")
     }

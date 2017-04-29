@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles;
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment;
 import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.name.Name;
+import org.jetbrains.kotlin.resolve.Import;
 import org.jetbrains.kotlin.resolve.ImportPath;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
 import org.jetbrains.kotlin.test.KotlinTestWithEnvironment;
@@ -114,7 +115,7 @@ public class KtPsiUtilTest extends KotlinTestWithEnvironment {
         );
     }
 
-    private ImportPath getImportPathFromParsed(String text) {
+    private Import getImportPathFromParsed(String text) {
         KtImportDirective importDirective =
                 PsiTreeUtil.findChildOfType(KtPsiFactoryKt.KtPsiFactory(getProject()).createFile(text), KtImportDirective.class);
 

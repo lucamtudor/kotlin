@@ -22,21 +22,21 @@ import org.jetbrains.kotlin.renderer.render
 
 interface Import {
     val isAllUnder: Boolean
-    val fqName: FqName?
+    val fqName: FqName
     val alias: Name?
 }
 
 val Import.hasAlias get() = alias != null
 val Import.importedName: Name? get() {
     if (!isAllUnder) {
-        return alias ?: fqName?.shortName()
+        return alias ?: fqName.shortName()
     }
 
     return null
 }
 
 fun Import.getText(): String {
-    val fqNameStr = fqName?.toUnsafe()?.render() ?: return ""
+    val fqNameStr = fqName.toUnsafe().render() ?: return ""
     val pathStr = fqNameStr + if (isAllUnder) ".*" else ""
     return pathStr + if (alias != null && !isAllUnder) (" as " + alias?.asString()) else ""
 }

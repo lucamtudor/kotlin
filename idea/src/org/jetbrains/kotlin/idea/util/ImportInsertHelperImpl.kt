@@ -33,11 +33,8 @@ import org.jetbrains.kotlin.idea.util.getFileResolutionScope
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.getImportableDescriptor
-import org.jetbrains.kotlin.resolve.hasAlias
-import org.jetbrains.kotlin.resolve.importedName
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.DefaultImportProvider
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
@@ -56,7 +53,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
     private val codeStyleSettings: KotlinCodeStyleSettings
         get() = KotlinCodeStyleSettings.getInstance(project)
 
-    override val importSortComparator: Comparator<ImportPath>
+    override val importSortComparator: Comparator<Import>
         get() = ImportPathComparator
 
     override fun isImportedWithDefault(importPath: ImportPath, contextFile: KtFile): Boolean {

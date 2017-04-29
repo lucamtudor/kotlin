@@ -23,6 +23,7 @@ import com.intellij.psi.PsiPackage
 import org.jetbrains.kotlin.asJava.namedUnwrappedElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.resolve.Import
 import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.resolve.hasAlias
 
@@ -43,7 +44,7 @@ fun PsiElement.getKotlinFqName(): FqName? {
     }
 }
 
-fun FqName.isImported(importPath: ImportPath, skipAliasedImports: Boolean = true): Boolean {
+fun FqName.isImported(importPath: Import, skipAliasedImports: Boolean = true): Boolean {
     return when {
         skipAliasedImports && importPath.hasAlias -> false
         importPath.isAllUnder && !isRoot -> importPath.fqName == this.parent()

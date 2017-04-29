@@ -20,6 +20,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.Import
 import org.jetbrains.kotlin.resolve.ImportPath
 import java.util.*
 
@@ -29,7 +30,7 @@ abstract class ImportInsertHelper {
 
     abstract fun mayImportOnShortenReferences(descriptor: DeclarationDescriptor): Boolean
 
-    abstract val importSortComparator: Comparator<ImportPath>
+    abstract val importSortComparator: Comparator<Import>
 
     abstract fun importDescriptor(file: KtFile, descriptor: DeclarationDescriptor, forceAllUnderImport: Boolean = false): ImportDescriptorResult
 

@@ -31,10 +31,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.renderer.render
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BindingTraceContext
-import org.jetbrains.kotlin.resolve.ImportPath
-import org.jetbrains.kotlin.resolve.getText
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.lazy.FileScopeProvider
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
 import org.jetbrains.kotlin.resolve.scopes.utils.findClassifier
@@ -73,19 +70,19 @@ class OptimizedImportsBuilder(
 
     private sealed class ImportRule {
         // force presence of this import
-        data class Add(val importPath: ImportPath) : ImportRule() {
+        data class Add(val importPath: Import) : ImportRule() {
             override fun toString() = "+" + importPath.toString()
         }
 
         // force absence of this import
-        data class DoNotAdd(val importPath: ImportPath) : ImportRule() {
+        data class DoNotAdd(val importPath: Import) : ImportRule() {
             override fun toString() = "-" + importPath.toString()
         }
     }
 
     private val importRules = HashSet<ImportRule>()
 
-    fun buildOptimizedImports(): List<ImportPath>? {
+    fun buildOptimizedImports(): List<Import>? {
         // TODO: should we drop unused aliases?
         // keep all non-trivial aliases
         file.importDirectives
@@ -115,8 +112,8 @@ class OptimizedImportsBuilder(
         }
     }
 
-    private fun tryBuildOptimizedImports(): List<ImportPath>? {
-        val importsToGenerate = HashSet<ImportPath>()
+    private fun tryBuildOptimizedImports(): List<Import>? {
+        val importsToGenerate = HashSet<Import>()
         importRules
                 .filterIsInstance<ImportRule.Add>()
                 .mapTo(importsToGenerate) { it.importPath }
@@ -227,7 +224,7 @@ class OptimizedImportsBuilder(
     private fun addExplicitImportsForClassesWhenRequired(
             classNamesToCheck: Collection<FqName>,
             descriptorsByParentFqName: Map<FqName, MutableSet<DeclarationDescriptor>>,
-            importsToGenerate: MutableSet<ImportPath>,
+            importsToGenerate: MutableSet<Import>,
             originalFile: KtFile
     ) {
         val scope = buildScopeByImports(originalFile, importsToGenerate.filter { it.isAllUnder })
@@ -250,7 +247,7 @@ class OptimizedImportsBuilder(
         }
     }
 
-    private fun buildScopeByImports(originalFile: KtFile, importsToGenerate: Collection<ImportPath>): ImportingScope {
+    private fun buildScopeByImports(originalFile: KtFile, importsToGenerate: Collection<Import>): ImportingScope {
         val fileText = buildString {
             append("package ")
             append(originalFile.packageFqName.toUnsafe().render())
