@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.PlatformToKotlinClassMap
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtPsiUtil
 import org.jetbrains.kotlin.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.jetbrains.kotlin.resolve.*
@@ -82,8 +83,16 @@ class LazyImportResolver(
         private val traceForImportResolve: BindingTrace,
         private val packageFragment: PackageFragmentDescriptor
 ) : ImportResolver {
+
+    // To include directive into equals
+    private data class ImportForResolve(val import: Import, val directive: KtImportDirective?) {
+        constructor(import: Import): this(import, import.importDirective)
+    }
+
     private val importedScopesProvider = storageManager.createMemoizedFunctionWithNullableValues {
-        import: Import ->
+        importForResolve: ImportForResolve ->
+
+        val import = importForResolve.import
 
         qualifiedExpressionResolver.processImportReference(
                 import, moduleDescriptor, traceForImportResolve, excludedImportNames, packageFragment,
@@ -92,9 +101,12 @@ class LazyImportResolver(
     }
 
     private val forceResolveImportDirective = storageManager.createMemoizedFunction {
-        import: Import ->
-        val scope = importedScopesProvider(import)
+        importForResolve: ImportForResolve ->
+
+
+        val scope = importedScopesProvider(importForResolve)
         if (scope is LazyExplicitImportScope) {
+            val import = importForResolve.import
             val allDescriptors = scope.storeReferencesToDescriptors()
             PlatformClassesMappedToKotlinChecker.checkPlatformClassesMappedToKotlin(
                     platformToKotlinClassMap, traceForImportResolve, import, allDescriptors
@@ -108,7 +120,7 @@ class LazyImportResolver(
         val explicitClassImports = HashMultimap.create<Name, Import>()
         for (import in indexedImports.imports) {
             forceResolveImport(import)
-            val scope = importedScopesProvider(import)
+            val scope = importedScopesProvider(ImportForResolve(import))
 
             val importedName = import.importedName
             if (scope != null && importedName != null) {
@@ -151,7 +163,7 @@ class LazyImportResolver(
     }
 
     override fun forceResolveImport(import: Import) {
-        forceResolveImportDirective(import)
+        forceResolveImportDirective(ImportForResolve(import))
     }
 
     fun <D : DeclarationDescriptor> selectSingleFromImports(
@@ -188,7 +200,7 @@ class LazyImportResolver(
     }
 
     fun getImportScope(import: Import): ImportingScope {
-        return importedScopesProvider(import) ?: ImportingScope.Empty
+        return importedScopesProvider(ImportForResolve(import)) ?: ImportingScope.Empty
     }
 }
 
