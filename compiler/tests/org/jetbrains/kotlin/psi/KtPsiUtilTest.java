@@ -121,7 +121,12 @@ public class KtPsiUtilTest extends KotlinTestWithEnvironment {
 
         assertNotNull("At least one import directive is expected", importDirective);
 
-        return importDirective.getImportPath();
+        Import anImport = importDirective.getImportPath();
+        if (anImport == null) {
+            return null;
+        }
+
+        return new ImportPath(anImport.getFqName(), anImport.isAllUnder(), anImport.getAlias());
     }
 
     private void checkIsSelectorInQualified() {
