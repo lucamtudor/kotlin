@@ -578,7 +578,15 @@ fun generators(): List<GenericFunction> {
         customSignature(CharSequences) { "windowed(size: Int, step: Int, transform: (CharSequence) -> R)" }
         body(CharSequences) {
             """
-            return windowIndices(this.length, size, step, dropTrailing = false).asIterable().map { transform(subSequence(it)) }
+            require(size > 0 && step > 0) { "size ${"$"}size and step ${"$"}step both must be greater than zero" }
+            val thisSize = this.length
+            val result = ArrayList<R>(thisSize / step + 1)
+            var index = 0
+            while (index < thisSize) {
+                result.add(transform(subSequence(index, (index + size).coerceAtMost(thisSize))))
+                index += step
+            }
+            return result
             """
         }
 
@@ -608,9 +616,10 @@ fun generators(): List<GenericFunction> {
         typeParam("R")
         returns { "Sequence<R> "}
 
-        body(CharSequences) {
+        body {
             """
-            return windowIndices(this.length, size, step, dropTrailing = false).map { transform(subSequence(it)) }
+            require(size > 0 && step > 0) { "size ${"$"}size and step ${"$"}step both must be greater than zero" }
+            return (indices step step).asSequence().map { index -> transform(subSequence(index, (index + size).coerceAtMost(length))) }
             """
         }
     }
@@ -634,6 +643,12 @@ fun generators(): List<GenericFunction> {
 
         returns(Sequences) { "Sequence<R>" }
         body { "return windowed(size, size, transform)" }
+        body(CharSequences) {
+            """
+            require(size > 0) { "size ${"$"}size must be greater than zero" }
+            return windowed(size, size, transform)
+            """
+        }
     }
 
     templates add f("chunked(size: Int)") {
@@ -653,7 +668,12 @@ fun generators(): List<GenericFunction> {
         typeParam("R")
         returns { "Sequence<R> "}
 
-        body { "return windowedSequence(size, size, transform)" }
+        body {
+            """
+            require(size > 0) { "size ${"$"}size must be greater than zero" }
+            return windowedSequence(size, size, transform)
+            """
+        }
     }
 
     templates add f("chunkedSequence(size: Int)") {
