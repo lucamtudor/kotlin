@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestWithEnvironment
+import org.jetbrains.kotlin.utils.keysToMap
 import java.util.*
 
 class StringInjectionHostTest : KotlinTestWithEnvironment() {
@@ -37,6 +38,27 @@ class StringInjectionHostTest : KotlinTestWithEnvironment() {
             checkInjection("ab", mapOf(0 to 1, 1 to 2, 2 to 3))
             checkInjection("a", mapOf(0 to 1, 1 to 2), rangeInHost = TextRange(1, 2))
             checkInjection("b", mapOf(0 to 2, 1 to 3), rangeInHost = TextRange(2, 3))
+            assertOneLine()
+        }
+    }
+
+    fun testInterpolation() {
+        with (quoted("a \$b c")) {
+            checkInjection("a \$b c", (0..6).keysToMap { it + 1 })
+            assertOneLine()
+        }
+
+        with (quoted("a \${b} c")) {
+            checkInjection("a \${b} c", (0..8).keysToMap { it + 1 })
+            assertOneLine()
+        }
+
+        with (quoted("a\${b}c")) {
+            checkInjection("a\${b}c", (0..6).keysToMap { it + 1 })
+            assertOneLine()
+        }
+        with (quoted("a \${b.foo()} c")) {
+            checkInjection("a \${b.foo()} c", (0..14).keysToMap { it + 1 })
             assertOneLine()
         }
     }
@@ -132,8 +154,10 @@ class StringInjectionHostTest : KotlinTestWithEnvironment() {
             val escaper = createLiteralTextEscaper()
             val chars = StringBuilder(prefix)
             val range = rangeInHost ?: escaper.relevantTextRange
+
             assertTrue(escaper.decode(range, chars))
             assertEquals(decoded, chars.substring(prefix.length))
+
             val extendedOffsets = HashMap(targetToSourceOffsets)
             val beforeStart = targetToSourceOffsets.keys.min()!! - 1
             if (beforeStart >= 0) {
