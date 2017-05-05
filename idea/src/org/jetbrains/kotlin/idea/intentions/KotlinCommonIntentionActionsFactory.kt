@@ -31,10 +31,7 @@ import org.jetbrains.kotlin.idea.core.insertMembersAfter
 import org.jetbrains.kotlin.idea.quickfix.AddModifierFix
 import org.jetbrains.kotlin.idea.quickfix.RemoveModifierFix
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtModifierListOwner
-import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UDeclaration
 import org.jetbrains.uast.UElement
@@ -78,6 +75,13 @@ class KotlinCommonIntentionActionsFactory : JvmCommonIntentionActionsFactory() {
 
     override fun createAddMethodAction(u: UClass, methodName: String, visibilityModifier: String, returnType: PsiType, vararg parameters: PsiType): IntentionAction? {
 
+        val psiFactory = KtPsiFactory(u)
+
+        val returnTypeString = when (returnType) {
+            PsiType.VOID -> ""
+            else -> ":" + returnType.canonicalText
+        }
+
         return object : LocalQuickFixAndIntentionActionOnPsiElement(u) {
             override fun getFamilyName(): String = "Add method"
 
@@ -86,9 +90,9 @@ class KotlinCommonIntentionActionsFactory : JvmCommonIntentionActionsFactory() {
             override fun getText(): String = text
 
             override fun invoke(project: Project, file: PsiFile, editor: Editor?, startElement: PsiElement, endElement: PsiElement) {
-                val psiFactory = KtPsiFactory(u)
                 val visibilityStr = javaVisibilityMapping.getValue(visibilityModifier).displayName
-                val function = psiFactory.createFunction("$visibilityStr fun $methodName(){}")
+
+                val function = psiFactory.createFunction("$visibilityStr fun $methodName()$returnTypeString{}")
                 val ktClassOrObject = u.asKtElement<KtClassOrObject>()!!
                 insertMembersAfter(null, ktClassOrObject, listOf(function), ktClassOrObject.declarations.lastOrNull() )
             }
