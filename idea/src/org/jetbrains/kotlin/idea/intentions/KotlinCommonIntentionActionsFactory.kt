@@ -16,19 +16,33 @@
 
 package org.jetbrains.kotlin.idea.intentions
 
-import com.intellij.codeInsight.intention.*
+import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.JvmCommonIntentionActionsFactory
+import com.intellij.codeInspection.LocalQuickFixAndIntentionActionOnPsiElement
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
+import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.idea.core.insertMembersAfter
 import org.jetbrains.kotlin.idea.quickfix.AddModifierFix
 import org.jetbrains.kotlin.idea.quickfix.RemoveModifierFix
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtModifierListOwner
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UDeclaration
+import org.jetbrains.uast.UElement
 
 
 class KotlinCommonIntentionActionsFactory : JvmCommonIntentionActionsFactory() {
     override fun createChangeModifierAction(declaration: UDeclaration, modifier: String, shouldPresent: Boolean): IntentionAction? {
-        val kModifierOwner = (declaration.psi as? KtLightElement<*, *>?)?.kotlinOrigin as? KtModifierListOwner?
+        val kModifierOwner = declaration.asKtElement<KtModifierListOwner>()
                              ?: throw IllegalArgumentException("$declaration is expected to contain KtLightElement with KtModifierListOwner")
 
         val (kToken, shouldPresentMapped) = if (PsiModifier.FINAL == modifier)
@@ -43,6 +57,9 @@ class KotlinCommonIntentionActionsFactory : JvmCommonIntentionActionsFactory() {
             RemoveModifierFix(kModifierOwner, kToken, false)
     }
 
+    private inline fun <reified T : KtElement> UElement.asKtElement(): T? =
+            (psi as? KtLightElement<*, *>?)?.kotlinOrigin as? T
+
     companion object {
         val javaPsiModifiersMapping = mapOf(
                 PsiModifier.PRIVATE to KtTokens.PRIVATE_KEYWORD,
@@ -50,6 +67,32 @@ class KotlinCommonIntentionActionsFactory : JvmCommonIntentionActionsFactory() {
                 PsiModifier.PROTECTED to KtTokens.PUBLIC_KEYWORD,
                 PsiModifier.ABSTRACT to KtTokens.ABSTRACT_KEYWORD
         )
+
+        val javaVisibilityMapping = mapOf(
+                PsiModifier.PRIVATE to Visibilities.PRIVATE,
+                PsiModifier.PUBLIC to Visibilities.PUBLIC,
+                PsiModifier.PROTECTED to Visibilities.PROTECTED,
+                PsiModifier.PACKAGE_LOCAL to Visibilities.INTERNAL
+        ).withDefault { Visibilities.DEFAULT_VISIBILITY }
     }
 
+    override fun createAddMethodAction(u: UClass, methodName: String, visibilityModifier: String, returnType: PsiType, vararg parameters: PsiType): IntentionAction? {
+
+        return object : LocalQuickFixAndIntentionActionOnPsiElement(u) {
+            override fun getFamilyName(): String = "Add method"
+
+            private val text = "Add method '$methodName' to '${u.name}'"
+
+            override fun getText(): String = text
+
+            override fun invoke(project: Project, file: PsiFile, editor: Editor?, startElement: PsiElement, endElement: PsiElement) {
+                val psiFactory = KtPsiFactory(u)
+                val visibilityStr = javaVisibilityMapping.getValue(visibilityModifier).displayName
+                val function = psiFactory.createFunction("$visibilityStr fun $methodName(){}")
+                val ktClassOrObject = u.asKtElement<KtClassOrObject>()!!
+                insertMembersAfter(null, ktClassOrObject, listOf(function), ktClassOrObject.declarations.lastOrNull() )
+            }
+        }
+
+    }
 }
