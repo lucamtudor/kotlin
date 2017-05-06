@@ -1106,12 +1106,11 @@ public inline fun CharSequence.sumByDouble(selector: (Char) -> Double): Double {
 
 @SinceKotlin("1.2")
 public fun CharSequence.chunked(size: Int): List<String> {
-    return chunked(size) { it.toString() }
+    return windowed(size, size)
 }
 
 @SinceKotlin("1.2")
 public fun <R> CharSequence.chunked(size: Int, transform: (CharSequence) -> R): List<R> {
-    require(size > 0) { "size $size must be greater than zero" }
     return windowed(size, size, transform)
 }
 
@@ -1122,7 +1121,6 @@ public fun CharSequence.chunkedSequence(size: Int): Sequence<String>  {
 
 @SinceKotlin("1.2")
 public fun <R> CharSequence.chunkedSequence(size: Int, transform: (CharSequence) -> R): Sequence<R>  {
-    require(size > 0) { "size $size must be greater than zero" }
     return windowedSequence(size, size, transform)
 }
 
@@ -1185,9 +1183,9 @@ public fun CharSequence.windowed(size: Int, step: Int): List<String> {
 
 @SinceKotlin("1.2")
 public fun <R> CharSequence.windowed(size: Int, step: Int, transform: (CharSequence) -> R): List<R> {
-    require(size > 0 && step > 0) { "size $size and step $step both must be greater than zero" }
+    checkWindowSizeStep(size, step)
     val thisSize = this.length
-    val result = ArrayList<R>(thisSize / step + 1)
+    val result = ArrayList<R>((thisSize + step - 1) / step)
     var index = 0
     while (index < thisSize) {
         result.add(transform(subSequence(index, (index + size).coerceAtMost(thisSize))))
@@ -1203,7 +1201,7 @@ public fun CharSequence.windowedSequence(size: Int, step: Int): Sequence<String>
 
 @SinceKotlin("1.2")
 public fun <R> CharSequence.windowedSequence(size: Int, step: Int, transform: (CharSequence) -> R): Sequence<R>  {
-    require(size > 0 && step > 0) { "size $size and step $step both must be greater than zero" }
+    checkWindowSizeStep(size, step)
     return (indices step step).asSequence().map { index -> transform(subSequence(index, (index + size).coerceAtMost(length))) }
 }
 
