@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.util
 
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.Processor
+import com.intellij.util.text.VersionComparatorUtil
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.config.LanguageVersion
@@ -31,6 +32,11 @@ import java.util.*
 import javax.xml.parsers.SAXParserFactory
 
 class KotlinVersionsTest : KtUsefulTestCase() {
+
+    fun testVersionComparison() {
+        Assert.assertTrue(VersionComparatorUtil.compare("1.2-M2-release-IJ2016.1-2", "1.2-M10-release-IJ2016.1-2") < 0)
+    }
+
     fun testVersionsAreConsistent() {
         val versionPattern = "(\\d+)\\.(\\d+)(\\.(\\d+)|-SNAPSHOT)?".toRegex()
 
