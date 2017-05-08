@@ -111,7 +111,7 @@ class CommonIntentionActionsTest : LightPlatformCodeInsightFixtureTestCase() {
         myFixture.checkResult("""
         |class Foo {
         |    fun bar() {}
-        |    fun baz(arg1: Int):Int {}
+        |    fun baz(arg1: Int): Int {}
         |}
         """.trim().trimMargin(), true)
     }

@@ -66,22 +66,21 @@ class KotlinCommonIntentionActionsFactory : JvmCommonIntentionActionsFactory() {
         )
 
         val javaVisibilityMapping = mapOf(
-                PsiModifier.PRIVATE to Visibilities.PRIVATE,
-                PsiModifier.PUBLIC to Visibilities.PUBLIC,
-                PsiModifier.PROTECTED to Visibilities.PROTECTED,
-                PsiModifier.PACKAGE_LOCAL to Visibilities.INTERNAL
+                PsiModifier.PRIVATE to Visibilities.PRIVATE.displayName,
+                PsiModifier.PUBLIC to "",
+                PsiModifier.PROTECTED to Visibilities.PROTECTED.displayName,
+                PsiModifier.PACKAGE_LOCAL to Visibilities.INTERNAL.displayName
         ).withDefault { Visibilities.DEFAULT_VISIBILITY }
     }
 
     override fun createAddMethodAction(u: UClass, methodName: String, visibilityModifier: String, returnType: PsiType, vararg parameters: PsiType): IntentionAction? {
-
-        val psiFactory = KtPsiFactory(u)
-
-        val returnTypeString = when (returnType) {
-            PsiType.VOID -> ""
-            else -> ":" + returnType.canonicalText
+        val returnTypeString: String = typeString(returnType).let {
+            when {
+                it.isEmpty() -> ""
+                else -> ": $it"
+            }
         }
-
+        val paramsStr = parameters.mapIndexed { index, psiType -> "arg${index + 1}: ${typeString(psiType)}" }.joinToString()
         return object : LocalQuickFixAndIntentionActionOnPsiElement(u) {
             override fun getFamilyName(): String = "Add method"
 
@@ -90,13 +89,28 @@ class KotlinCommonIntentionActionsFactory : JvmCommonIntentionActionsFactory() {
             override fun getText(): String = text
 
             override fun invoke(project: Project, file: PsiFile, editor: Editor?, startElement: PsiElement, endElement: PsiElement) {
-                val visibilityStr = javaVisibilityMapping.getValue(visibilityModifier).displayName
-
-                val function = psiFactory.createFunction("$visibilityStr fun $methodName()$returnTypeString{}")
+                val visibilityStr = javaVisibilityMapping.getValue(visibilityModifier)
+                val psiFactory = KtPsiFactory(u)
+                val function = psiFactory.createFunction("$visibilityStr fun $methodName($paramsStr)$returnTypeString{}")
                 val ktClassOrObject = u.asKtElement<KtClassOrObject>()!!
-                insertMembersAfter(null, ktClassOrObject, listOf(function), ktClassOrObject.declarations.lastOrNull() )
+                insertMembersAfter(null, ktClassOrObject, listOf(function), ktClassOrObject.declarations.lastOrNull())
             }
         }
 
+    }
+
+    private fun typeString(str: PsiType): String {
+        return when (str) {
+            PsiType.VOID -> ""
+            PsiType.INT -> "kotlin.Int"
+            PsiType.LONG -> "kotlin.Long"
+            PsiType.SHORT -> "kotlin.Short"
+            PsiType.BOOLEAN -> "kotlin.Boolean"
+            PsiType.BYTE -> "kotlin.Byte"
+            PsiType.CHAR -> "kotlin.Char"
+            PsiType.DOUBLE -> "kotlin.Double"
+            PsiType.FLOAT -> "kotlin.Float"
+            else -> str.canonicalText
+        }
     }
 }
