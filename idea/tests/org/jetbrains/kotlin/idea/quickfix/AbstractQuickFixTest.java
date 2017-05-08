@@ -364,17 +364,4 @@ public abstract class AbstractQuickFixTest extends KotlinLightQuickFixTestCase {
     protected static Sdk getFullJavaJDK() {
         return JavaSdk.getInstance().createJdk("JDK", SystemUtils.getJavaHome().getAbsolutePath());
     }
-
-    override fun getTestDataPath(): String {
-        // Ensure full path is returned. Otherwise FileComparisonFailureException does not provide link to file diff
-        val testDataPath = super.getTestDataPath()
-        try {
-            return File(testDataPath).getCanonicalPath()
-        }
-        catch (e: IOException) {
-            e.printStackTrace()
-            return testDataPath
-        }
-
-    }
 }
