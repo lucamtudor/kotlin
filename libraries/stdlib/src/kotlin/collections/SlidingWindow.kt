@@ -60,9 +60,7 @@ internal fun <T> windowedIterator(iterator: Iterator<T>, size: Int, step: Int, d
                     buffer.removeFirst(step)
                 }
             }
-            if (dropTrailing) {
-                if (buffer.size == size) yield(buffer)
-            } else {
+            if (!dropTrailing) {
                 while (buffer.size > step) {
                     yield(if (reuseBuffer) buffer else ArrayList(buffer))
                     buffer.removeFirst(step)
@@ -96,8 +94,7 @@ internal class MovingSubList<out E>(private val list: List<E>) : AbstractList<E>
 /**
  * Provides ring buffer implementation.
  *
- * Buffer overflow is not allowed so [add] doesn't overwrite tail but raises an exception while [offer] returns `false`
- * If it is going to be public API perhaps this behaviour could be customizable
+ * Buffer overflow is not allowed so [add] doesn't overwrite tail but raises an exception.
  */
 private class RingBuffer<T>(val capacity: Int): AbstractList<T>(), RandomAccess {
     init {
@@ -169,22 +166,12 @@ private class RingBuffer<T>(val capacity: Int): AbstractList<T>(), RandomAccess 
      * Add [element] to the buffer or fail with [IllegalStateException] if no free space available in the buffer
      */
     fun add(element: T) {
-        if (!offer(element)) {
-            throw IllegalStateException("ring buffer is full")
-        }
-    }
-
-    /**
-     * Offers [element] to the buffer and return `true` if it was added or `false` when there is no free space available in the buffer
-     */
-    fun offer(element: T): Boolean {
         if (isFull()) {
-            return false
+            throw IllegalStateException("ring buffer is full")
         }
 
         buffer[startIndex.forward(size)] = element
         size++
-        return true
     }
 
     /**
