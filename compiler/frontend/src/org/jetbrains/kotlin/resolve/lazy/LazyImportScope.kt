@@ -117,7 +117,7 @@ class LazyImportResolver(
     }
 
     override fun forceResolveAllImports() {
-        val explicitClassImports = HashMultimap.create<Name, Import>()
+        val explicitClassImports = HashMultimap.create<Name, ImportForResolve>()
         for (import in indexedImports.imports) {
             forceResolveImport(import)
             val scope = importedScopesProvider(ImportForResolve(import))
@@ -126,7 +126,7 @@ class LazyImportResolver(
             if (scope != null && importedName != null) {
                 val location = import.importDirective?.let { KotlinLookupLocation(import.importDirective!!) } ?: NoLookupLocation.FROM_SYNTHETIC_SCOPE
                 if (scope.getContributedClassifier(importedName, location) != null) {
-                    explicitClassImports.put(importedName, import)
+                    explicitClassImports.put(importedName, ImportForResolve(import))
                 }
             }
 
@@ -134,14 +134,14 @@ class LazyImportResolver(
         }
         for ((importedName, import) in explicitClassImports.entries()) {
             if (importedName.asString().all { it == '_' }) {
-                traceForImportResolve.report(Errors.UNDERSCORE_IS_RESERVED.on(import.importDirective!!))
+                traceForImportResolve.report(Errors.UNDERSCORE_IS_RESERVED.on(import.directive!!))
             }
         }
         for (importedName in explicitClassImports.keySet()) {
             val imports = explicitClassImports.get(importedName)
             if (imports.size > 1) {
                 imports.forEach {
-                    traceForImportResolve.report(Errors.CONFLICTING_IMPORT.on(it.importDirective!!, importedName.asString()))
+                    traceForImportResolve.report(Errors.CONFLICTING_IMPORT.on(it.directive!!, importedName.asString()))
                 }
             }
         }
