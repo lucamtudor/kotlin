@@ -184,42 +184,7 @@ abstract class KtLightClassForSourceDeclaration(protected val classOrObject: KtC
 
     override fun getModifierList(): PsiModifierList? = _modifierList
 
-    protected open fun computeModifiers(): Set<String> {
-        val psiModifiers = hashSetOf<String>()
-
-        // PUBLIC, PROTECTED, PRIVATE, ABSTRACT, FINAL
-        //noinspection unchecked
-
-        for (tokenAndModifier in jetTokenToPsiModifier) {
-            if (classOrObject.hasModifier(tokenAndModifier.first)) {
-                psiModifiers.add(tokenAndModifier.second)
-            }
-        }
-
-        if (classOrObject.hasModifier(PRIVATE_KEYWORD)) {
-            // Top-level private class has PACKAGE_LOCAL visibility in Java
-            // Nested private class has PRIVATE visibility
-            psiModifiers.add(if (classOrObject.isTopLevel()) PsiModifier.PACKAGE_LOCAL else PsiModifier.PRIVATE)
-        }
-        else if (!psiModifiers.contains(PsiModifier.PROTECTED)) {
-            psiModifiers.add(PsiModifier.PUBLIC)
-        }
-
-
-        // FINAL
-        if (isAbstract() || isSealed()) {
-            psiModifiers.add(PsiModifier.ABSTRACT)
-        }
-        else if (!(classOrObject.hasModifier(OPEN_KEYWORD) || (classOrObject is KtClass && classOrObject.isEnum()))) {
-            psiModifiers.add(PsiModifier.FINAL)
-        }
-
-        if (!classOrObject.isTopLevel() && !classOrObject.hasModifier(INNER_KEYWORD)) {
-            psiModifiers.add(PsiModifier.STATIC)
-        }
-
-        return psiModifiers
-    }
+    protected open fun computeModifiers(): Set<String> = PsiModifier.MODIFIERS.filter { clsDelegate.modifierList?.hasModifierProperty(it) ?: false }.toSet()
 
     private fun isAbstract(): Boolean = classOrObject.hasModifier(ABSTRACT_KEYWORD) || isInterface
 
