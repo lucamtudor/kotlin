@@ -6,15 +6,15 @@ interface KotlinCommonOptions {
 
     /**
      * Allow to use declarations only from the specified version of bundled libraries
-     * Possible values: "1.0", "1.1", "1.2 (EXPERIMENTAL)"
-     * Default value: "1.1"
+     * Possible values: "1.0", "1.1", "1.2"
+     * Default value: "1.2"
      */
      var apiVersion: kotlin.String
 
     /**
      * Provide source compatibility with specified language version
-     * Possible values: "1.0", "1.1", "1.2 (EXPERIMENTAL)"
-     * Default value: "1.1"
+     * Possible values: "1.0", "1.1", "1.2"
+     * Default value: "1.2"
      */
      var languageVersion: kotlin.String
 
