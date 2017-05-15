@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor;
-import org.jetbrains.kotlin.descriptors.SourceElement;
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor;
 import org.jetbrains.kotlin.js.backend.ast.*;
 import org.jetbrains.kotlin.js.backend.ast.metadata.MetadataProperties;
@@ -86,11 +85,10 @@ public final class FunctionBodyTranslator extends AbstractTranslator {
             KtExpression defaultArgument = getDefaultArgument(valueParameter);
             JsBlock defaultArgBlock = new JsBlock();
             JsExpression defaultValue = Translation.translateAsExpression(defaultArgument, functionBodyContext, defaultArgBlock);
-            JsStatement assignStatement = assignment(jsNameRef, defaultValue).makeStmt();
+            PsiElement psi = KotlinSourceElementKt.getPsi(valueParameter.getSource());
+            JsStatement assignStatement = assignment(jsNameRef, defaultValue).source(psi).makeStmt();
             JsStatement thenStatement = JsAstUtils.mergeStatementInBlockIfNeeded(assignStatement, defaultArgBlock);
             JsBinaryOperation checkArgIsUndefined = equality(jsNameRef, Namer.getUndefinedExpression());
-            SourceElement source = valueParameter.getSource();
-            PsiElement psi = KotlinSourceElementKt.getPsi(source);
             if (psi != null) {
                 checkArgIsUndefined.source(psi);
             }
@@ -156,7 +154,7 @@ public final class FunctionBodyTranslator extends AbstractTranslator {
             }
 
             JsReturn jsReturn = new JsReturn((JsExpression) node);
-            jsReturn.setSource(declaration);
+            jsReturn.setSource(declaration.getBodyExpression());
             MetadataProperties.setReturnTarget(jsReturn, descriptor);
             return jsReturn;
         });
