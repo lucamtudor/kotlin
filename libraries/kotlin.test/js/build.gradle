@@ -9,6 +9,11 @@ dependencies {
     compile project(':kotlin-stdlib-js')
 }
 
+configurations {
+    compile.extendsFrom(implement) // temporary to make 'implement' transitive
+}
+
+
 compileKotlin2Js {
     // TODO: Why "-Xmulti-platfrom" ?
     kotlinOptions.freeCompilerArgs = ["-Xallow-kotlin-package", "-Xmulti-platform"]

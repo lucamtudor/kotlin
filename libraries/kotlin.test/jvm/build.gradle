@@ -12,6 +12,10 @@ dependencies {
     testCompile('junit:junit:4.12')
 }
 
+configurations {
+    compile.extendsFrom(implement) // temporary to make 'implement' transitive
+}
+
 
 archivesBaseName = 'kotlin-test'
 
