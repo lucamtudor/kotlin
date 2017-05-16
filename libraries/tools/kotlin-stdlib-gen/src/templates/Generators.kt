@@ -673,12 +673,27 @@ fun generators(): List<GenericFunction> {
     templates add f("chunked(size: Int, transform: (List<T>) -> R)") {
         since("1.2")
         only(Iterables, Sequences, CharSequences)
-        typeParam("R")
+        doc { f ->
+            """
+            Splits this ${f.collection} into several ${f.viewResult.pluralize()} each not exceeding the given [size]
+            and applies the given [transform] function to an each.
 
+            @return ${f.mapResult} of results of the [transform] applied to an each ${f.viewResult}.
+
+            Note that the ${f.viewResult} passed to the [transform] function is ephemeral and is valid only inside that function.
+            You should not store it or allow it escape someway, unless you made a snapshot of it.
+            The last ${f.viewResult} may have less ${f.element.pluralize()} than the given [size].
+
+            @sample samples.text.Strings.chunkedTransform
+            """
+        }
+
+        typeParam("R")
         returns("List<R>")
 
         customSignature(CharSequences) { "chunked(size: Int, transform: (CharSequence) -> R)" }
 
+        sequenceClassification(intermediate, stateful)
         returns(Sequences) { "Sequence<R>" }
         body { "return windowed(size, size, transform)" }
     }
@@ -686,9 +701,20 @@ fun generators(): List<GenericFunction> {
     templates add f("chunked(size: Int)") {
         since("1.2")
         only(Iterables, Sequences, CharSequences)
+        doc { f ->
+            """
+            Splits this ${f.collection} into a ${f.mapResult} of ${f.snapshotResult.pluralize()} each not exceeding the given [size].
+
+            The last ${f.snapshotResult} in the resulting ${f.mapResult} may have less ${f.element.pluralize()} than the given [size].
+
+            @sample samples.collections.Collections.Transformations.chunked
+            """
+        }
         returns(Iterables) { "List<List<T>>" }
         returns(Sequences) { "Sequence<List<T>>" }
         returns(CharSequences) { "List<String>" }
+
+        sequenceClassification(intermediate, stateful)
 
         body { "return windowed(size, size)" }
     }
@@ -696,6 +722,21 @@ fun generators(): List<GenericFunction> {
     templates add f("chunkedSequence(size: Int, transform: (CharSequence) -> R)") {
         since("1.2")
         only(CharSequences)
+        doc { f ->
+            """
+            Splits this ${f.collection} into several ${f.viewResult.pluralize()} each not exceeding the given [size]
+            and applies the given [transform] function to an each.
+
+            @return sequence of results of the [transform] applied to an each ${f.viewResult}.
+
+            Note that the ${f.viewResult} passed to the [transform] function is ephemeral and is valid only inside that function.
+            You should not store it or allow it to escape someway, unless you made a snapshot of it.
+            The last ${f.viewResult} may have less ${f.element.pluralize()} than the given [size].
+
+            @sample samples.text.Strings.chunkedTransformToSequence
+            """
+        }
+
         typeParam("R")
         returns { "Sequence<R> "}
 
@@ -709,6 +750,15 @@ fun generators(): List<GenericFunction> {
     templates add f("chunkedSequence(size: Int)") {
         since("1.2")
         only(CharSequences)
+        doc { f ->
+            """
+            Splits this ${f.collection} into a sequence of ${f.snapshotResult.pluralize()} each not exceeding the given [size].
+
+            The last ${f.snapshotResult} in the resulting sequence may have less ${f.element.pluralize()} than the given [size].
+
+            @sample samples.collections.Collections.Transformations.chunked
+            """
+        }
         returns { "Sequence<String> "}
 
         body(CharSequences) { "return chunkedSequence(size) { it.toString() }" }
@@ -1014,3 +1064,17 @@ fun generators(): List<GenericFunction> {
 
     return templates
 }
+
+// documentation helpers
+
+private val Family.snapshotResult: String
+    get() = when (this) {
+        CharSequences, Strings -> "string"
+        else -> "list"
+    }
+
+private val Family.viewResult: String
+    get() = when (this) {
+        CharSequences, Strings -> "char sequence"
+        else -> "list"
+    }
