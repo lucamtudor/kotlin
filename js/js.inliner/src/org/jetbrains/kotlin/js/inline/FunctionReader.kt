@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.js.inline.util.IdentitySet
 import org.jetbrains.kotlin.js.inline.util.isCallInvocation
 import org.jetbrains.kotlin.js.parser.parseFunction
 import org.jetbrains.kotlin.js.translate.context.Namer
+import org.jetbrains.kotlin.js.translate.reference.CallExpressionTranslator
 import org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils.getModuleName
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.inline.InlineStrategy
@@ -57,7 +58,7 @@ class FunctionReader(private val config: JsConfig, private val currentModuleName
      * kotlinVariable: kotlin object variable.
      *     The default variable is Kotlin, but it can be renamed by minifier.
      */
-    data class ModuleInfo(val fileContent: String, val moduleVariable: String, val kotlinVariable: String)
+    data class ModuleInfo(val filePath: String, val fileContent: String, val moduleVariable: String, val kotlinVariable: String)
 
     private val moduleNameToInfo = HashMultimap.create<String, ModuleInfo>()
 
@@ -68,7 +69,7 @@ class FunctionReader(private val config: JsConfig, private val currentModuleName
 
         moduleNameMap = buildModuleNameMap(fragments)
 
-        JsLibraryUtils.traverseJsLibraries(libs) { fileContent, _ ->
+        JsLibraryUtils.traverseJsLibraries(libs) { fileContent, filePath ->
             var current = 0
 
             while (true) {
@@ -83,7 +84,7 @@ class FunctionReader(private val config: JsConfig, private val currentModuleName
                 val moduleName = preciseMatcher.group(3)
                 val moduleVariable = preciseMatcher.group(4)
                 val kotlinVariable = preciseMatcher.group(1)
-                moduleNameToInfo.put(moduleName, ModuleInfo(fileContent, moduleVariable, kotlinVariable))
+                moduleNameToInfo.put(moduleName, ModuleInfo(filePath, fileContent, moduleVariable, kotlinVariable))
             }
         }
     }
@@ -126,7 +127,7 @@ class FunctionReader(private val config: JsConfig, private val currentModuleName
     }
 
     operator fun get(descriptor: CallableDescriptor): JsFunction = functionCache.get(descriptor)
-    
+
     private fun readFunction(descriptor: CallableDescriptor): JsFunction? {
         if (descriptor !in this) return null
 
@@ -152,7 +153,7 @@ class FunctionReader(private val config: JsConfig, private val currentModuleName
             offset++
         }
 
-        val function = parseFunction(source, offset, ThrowExceptionOnErrorReporter, JsRootScope(JsProgram()))
+        val function = parseFunction(source, info.filePath, offset, ThrowExceptionOnErrorReporter, JsRootScope(JsProgram()))
         val moduleReference = moduleNameMap[tag] ?: currentModuleName.makeRef()
 
         val replacements = hashMapOf(info.moduleVariable to moduleReference,
@@ -173,6 +174,8 @@ private fun JsFunction.markInlineArguments(descriptor: CallableDescriptor) {
     val offset = if (descriptor.isExtension) 1 else 0
 
     for ((i, param) in params.withIndex()) {
+        if (!CallExpressionTranslator.shouldBeInlined(descriptor)) continue
+
         val type = param.type
         if (!type.isFunctionTypeOrSubtype) continue
 

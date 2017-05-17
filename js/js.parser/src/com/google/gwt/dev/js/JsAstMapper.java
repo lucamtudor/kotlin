@@ -32,8 +32,12 @@ public class JsAstMapper {
 
     private final ScopeContext scopeContext;
 
-    public JsAstMapper(@NotNull JsScope scope) {
+    @NotNull
+    private final String fileName;
+
+    public JsAstMapper(@NotNull JsScope scope, @NotNull String fileName) {
         scopeContext = new ScopeContext(scope);
+        this.fileName = fileName;
     }
 
     private static JsParserException createParserException(String msg, Node offender) {
@@ -43,6 +47,10 @@ public class JsAstMapper {
     }
 
     private JsNode map(Node node) throws JsParserException {
+        return withLocation(mapWithoutLocation(node), node);
+    }
+
+    private JsNode mapWithoutLocation(Node node) throws JsParserException {
         switch (node.getType()) {
             case TokenStream.SCRIPT: {
                 JsBlock block = new JsBlock();
@@ -1096,5 +1104,19 @@ public class JsAstMapper {
     private boolean isJsNumber(Node jsNode) {
         int type = jsNode.getType();
         return type == TokenStream.NUMBER || type == TokenStream.NUMBER;
+    }
+
+    private <T extends JsNode> T withLocation(T astNode, Node node) {
+        Location location = node.getLocation();
+        if (location != null) {
+            JsLocation jsLocation = new JsLocation(fileName, location.line, location.offset);
+            if (astNode instanceof SourceInfoAwareJsNode) {
+                astNode.setSource(jsLocation);
+            }
+            else if (astNode instanceof JsExpressionStatement) {
+                ((JsExpressionStatement) astNode).getExpression().setSource(jsLocation);
+            }
+        }
+        return astNode;
     }
 }
