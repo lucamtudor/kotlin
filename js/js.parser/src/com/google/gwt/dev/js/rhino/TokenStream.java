@@ -1458,6 +1458,10 @@ public class TokenStream {
     public int getTokenno() { return tokenno; }
     public boolean eof() { return in.eof(); }
 
+    public Location getLocation() {
+        return new Location(getLineno(), getOffset());
+    }
+
     // instance variables
     private LineBuffer in;
 
