@@ -198,6 +198,9 @@ public class IRFactory {
     }
 
     public Node createFunction(Node name, Node args, Node statements, Location location) {
+        if (name == null) {
+            name = createName("", location);
+        }
         return new Node(TokenStream.FUNCTION, name, args, statements, location);
     }
 

@@ -310,7 +310,7 @@ public class Parser extends Observable {
             wellTerminated(ts, TokenStream.ERROR);
         }
 
-        return nf.createString(label, location);
+        return label != null ? nf.createString(label, location) : null;
     }
 
     private Node statement(TokenStream ts) throws IOException {

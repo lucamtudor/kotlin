@@ -345,15 +345,7 @@ public class Node implements Cloneable {
     }
 
     public int getOperation() {
-        switch (type) {
-            case TokenStream.EQOP:
-            case TokenStream.RELOP:
-            case TokenStream.UNARYOP:
-            case TokenStream.PRIMARY:
-                return operation;
-        }
-        Context.codeBug();
-        return 0;
+        return operation;
     }
 
     public Location getLocation() {
