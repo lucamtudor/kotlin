@@ -374,6 +374,7 @@
                 <zipfileset src="${idea.sdk}/jps/jps-model.jar"/>
                 <zipfileset src="${dependencies}/jline.jar"/>
                 <zipfileset src="${dependencies}/javaslang-2.0.6.jar"/>
+                <zipfileset src="${dependencies}/json-org.jar"/>
                 <zipfileset src="${protobuf.jar}"/>
 
                 <manifest>
