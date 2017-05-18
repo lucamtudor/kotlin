@@ -1109,6 +1109,8 @@ public inline fun CharSequence.sumByDouble(selector: (Char) -> Double): Double {
  * 
  * The last string in the resulting list may have less characters than the given [size].
  * 
+ * @param size the number of elements to take in each string, must be positive and can be greater than the number of elements in this char sequence.
+ * 
  * @sample samples.collections.Collections.Transformations.chunked
  */
 @SinceKotlin("1.2")
@@ -1126,6 +1128,8 @@ public fun CharSequence.chunked(size: Int): List<String> {
  * You should not store it or allow it escape someway, unless you made a snapshot of it.
  * The last char sequence may have less characters than the given [size].
  * 
+ * @param size the number of elements to take in each char sequence, must be positive and can be greater than the number of elements in this char sequence.
+ * 
  * @sample samples.text.Strings.chunkedTransform
  */
 @SinceKotlin("1.2")
@@ -1137,6 +1141,8 @@ public fun <R> CharSequence.chunked(size: Int, transform: (CharSequence) -> R): 
  * Splits this char sequence into a sequence of strings each not exceeding the given [size].
  * 
  * The last string in the resulting sequence may have less characters than the given [size].
+ * 
+ * @param size the number of elements to take in each string, must be positive and can be greater than the number of elements in this char sequence.
  * 
  * @sample samples.collections.Collections.Transformations.chunked
  */
@@ -1154,6 +1160,8 @@ public fun CharSequence.chunkedSequence(size: Int): Sequence<String>  {
  * Note that the char sequence passed to the [transform] function is ephemeral and is valid only inside that function.
  * You should not store it or allow it to escape someway, unless you made a snapshot of it.
  * The last char sequence may have less characters than the given [size].
+ * 
+ * @param size the number of elements to take in each char sequence, must be positive and can be greater than the number of elements in this char sequence.
  * 
  * @sample samples.text.Strings.chunkedTransformToSequence
  */

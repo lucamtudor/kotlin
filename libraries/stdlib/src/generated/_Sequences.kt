@@ -1338,6 +1338,8 @@ public fun <T : Any> Sequence<T?>.requireNoNulls(): Sequence<T> {
  * 
  * The last list in the resulting sequence may have less elements than the given [size].
  * 
+ * @param size the number of elements to take in each list, must be positive and can be greater than the number of elements in this sequence.
+ * 
  * @sample samples.collections.Collections.Transformations.chunked
  *
  * The operation is _intermediate_ and _stateful_.
@@ -1356,6 +1358,8 @@ public fun <T> Sequence<T>.chunked(size: Int): Sequence<List<T>> {
  * Note that the list passed to the [transform] function is ephemeral and is valid only inside that function.
  * You should not store it or allow it escape someway, unless you made a snapshot of it.
  * The last list may have less elements than the given [size].
+ * 
+ * @param size the number of elements to take in each list, must be positive and can be greater than the number of elements in this sequence.
  * 
  * @sample samples.text.Strings.chunkedTransform
  *

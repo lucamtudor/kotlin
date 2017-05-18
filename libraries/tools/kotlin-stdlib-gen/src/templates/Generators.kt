@@ -740,6 +740,8 @@ fun generators(): List<GenericFunction> {
             You should not store it or allow it escape someway, unless you made a snapshot of it.
             The last ${f.viewResult} may have less ${f.element.pluralize()} than the given [size].
 
+            @param size the number of elements to take in each ${f.viewResult}, must be positive and can be greater than the number of elements in this ${f.collection}.
+
             @sample samples.text.Strings.chunkedTransform
             """
         }
@@ -762,6 +764,8 @@ fun generators(): List<GenericFunction> {
             Splits this ${f.collection} into a ${f.mapResult} of ${f.snapshotResult.pluralize()} each not exceeding the given [size].
 
             The last ${f.snapshotResult} in the resulting ${f.mapResult} may have less ${f.element.pluralize()} than the given [size].
+
+            @param size the number of elements to take in each ${f.snapshotResult}, must be positive and can be greater than the number of elements in this ${f.collection}.
 
             @sample samples.collections.Collections.Transformations.chunked
             """
@@ -789,6 +793,8 @@ fun generators(): List<GenericFunction> {
             You should not store it or allow it to escape someway, unless you made a snapshot of it.
             The last ${f.viewResult} may have less ${f.element.pluralize()} than the given [size].
 
+            @param size the number of elements to take in each ${f.viewResult}, must be positive and can be greater than the number of elements in this ${f.collection}.
+
             @sample samples.text.Strings.chunkedTransformToSequence
             """
         }
@@ -811,6 +817,8 @@ fun generators(): List<GenericFunction> {
             Splits this ${f.collection} into a sequence of ${f.snapshotResult.pluralize()} each not exceeding the given [size].
 
             The last ${f.snapshotResult} in the resulting sequence may have less ${f.element.pluralize()} than the given [size].
+
+            @param size the number of elements to take in each ${f.snapshotResult}, must be positive and can be greater than the number of elements in this ${f.collection}.
 
             @sample samples.collections.Collections.Transformations.chunked
             """
