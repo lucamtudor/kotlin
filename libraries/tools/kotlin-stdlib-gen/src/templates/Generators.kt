@@ -562,8 +562,23 @@ fun generators(): List<GenericFunction> {
     templates add f("windowed(size: Int, step: Int, transform: (List<T>) -> R)") {
         since("1.2")
         only(Iterables, Sequences, CharSequences)
-        typeParam("R")
+        doc { f ->
+            """
+            Returns a ${f.mapResult} of results of applying the given [transform] function to
+            an each ${f.viewResult} representing a view over the window of the given [size]
+            sliding along this ${f.collection} with the given [step].
 
+            Note that the ${f.viewResult} passed to the [transform] function is ephemeral and is valid only inside that function.
+            You should not store it or allow it escape someway, unless you made a snapshot of it.
+            Several last ${f.viewResult.pluralize()} may have less ${f.element.pluralize()} than the given [size].
+
+            Both [size] and [step] must be positive and can be greater than the number of elements in this ${f.collection}.
+            @param size the number of elements to take in each window
+            @param step the number of elements to move window forward on an each step
+            """
+        }
+
+        typeParam("R")
         returns("List<R>")
 
         body {
@@ -619,6 +634,19 @@ fun generators(): List<GenericFunction> {
         returns(Sequences) { "Sequence<List<T>>" }
         returns(CharSequences) { "List<String>" }
 
+        doc { f ->
+            """
+            Returns a ${f.mapResult} of snapshots of the window of the given [size]
+            sliding along this ${f.collection} with the given [step], where each
+            snapshot is ${f.snapshotResult.prefixWithArticle()}.
+
+            Several last ${f.snapshotResult.pluralize()} may have less ${f.element.pluralize()} than the given [size].
+
+            Both [size] and [step] must be positive and can be greater than the number of elements in this ${f.collection}.
+            @param size the number of elements to take in each window
+            @param step the number of elements to move window forward on an each step
+            """
+        }
 
         body {
             """
@@ -651,6 +679,21 @@ fun generators(): List<GenericFunction> {
     templates add f("windowedSequence(size: Int, step: Int, transform: (CharSequence) -> R)") {
         since("1.2")
         only(CharSequences)
+        doc { f ->
+            """
+            Returns a sequence of results of applying the given [transform] function to
+            an each ${f.viewResult} representing a view over the window of the given [size]
+            sliding along this ${f.collection} with the given [step].
+
+            Note that the ${f.viewResult} passed to the [transform] function is ephemeral and is valid only inside that function.
+            You should not store it or allow it escape someway, unless you made a snapshot of it.
+            Several last ${f.viewResult.pluralize()} may have less ${f.element.pluralize()} than the given [size].
+
+            Both [size] and [step] must be positive and can be greater than the number of elements in this ${f.collection}.
+            @param size the number of elements to take in each window
+            @param step the number of elements to move window forward on an each step
+            """
+        }
         typeParam("R")
         returns { "Sequence<R> "}
 
@@ -665,6 +708,19 @@ fun generators(): List<GenericFunction> {
     templates add f("windowedSequence(size: Int, step: Int)") {
         since("1.2")
         only(CharSequences)
+        doc { f ->
+            """
+            Returns a sequence of snapshots of the window of the given [size]
+            sliding along this ${f.collection} with the given [step], where each
+            snapshot is ${f.snapshotResult.prefixWithArticle()}.
+
+            Several last ${f.snapshotResult.pluralize()} may have less ${f.element.pluralize()} than the given [size].
+
+            Both [size] and [step] must be positive and can be greater than the number of elements in this ${f.collection}.
+            @param size the number of elements to take in each window
+            @param step the number of elements to move window forward on an each step
+            """
+        }
         returns { "Sequence<String> "}
 
         body(CharSequences) { "return windowedSequence(size, step) { it.toString() }" }

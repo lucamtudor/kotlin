@@ -1025,9 +1025,33 @@ public header inline fun <T> Iterable<T>.plusElement(element: T): List<T>
 @kotlin.internal.InlineOnly
 public header inline fun <T> Collection<T>.plusElement(element: T): List<T>
 
+/**
+ * Returns a list of snapshots of the window of the given [size]
+ * sliding along this collection with the given [step], where each
+ * snapshot is a list.
+ * 
+ * Several last lists may have less elements than the given [size].
+ * 
+ * Both [size] and [step] must be positive and can be greater than the number of elements in this collection.
+ * @param size the number of elements to take in each window
+ * @param step the number of elements to move window forward on an each step
+ */
 @SinceKotlin("1.2")
 public header fun <T> Iterable<T>.windowed(size: Int, step: Int): List<List<T>>
 
+/**
+ * Returns a list of results of applying the given [transform] function to
+ * an each list representing a view over the window of the given [size]
+ * sliding along this collection with the given [step].
+ * 
+ * Note that the list passed to the [transform] function is ephemeral and is valid only inside that function.
+ * You should not store it or allow it escape someway, unless you made a snapshot of it.
+ * Several last lists may have less elements than the given [size].
+ * 
+ * Both [size] and [step] must be positive and can be greater than the number of elements in this collection.
+ * @param size the number of elements to take in each window
+ * @param step the number of elements to move window forward on an each step
+ */
 @SinceKotlin("1.2")
 public header fun <T, R> Iterable<T>.windowed(size: Int, step: Int, transform: (List<T>) -> R): List<R>
 

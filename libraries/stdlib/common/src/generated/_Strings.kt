@@ -719,15 +719,63 @@ public header inline fun CharSequence.partition(predicate: (Char) -> Boolean): P
  */
 public header inline fun String.partition(predicate: (Char) -> Boolean): Pair<String, String>
 
+/**
+ * Returns a list of snapshots of the window of the given [size]
+ * sliding along this char sequence with the given [step], where each
+ * snapshot is a string.
+ * 
+ * Several last strings may have less characters than the given [size].
+ * 
+ * Both [size] and [step] must be positive and can be greater than the number of elements in this char sequence.
+ * @param size the number of elements to take in each window
+ * @param step the number of elements to move window forward on an each step
+ */
 @SinceKotlin("1.2")
 public header fun CharSequence.windowed(size: Int, step: Int): List<String>
 
+/**
+ * Returns a list of results of applying the given [transform] function to
+ * an each char sequence representing a view over the window of the given [size]
+ * sliding along this char sequence with the given [step].
+ * 
+ * Note that the char sequence passed to the [transform] function is ephemeral and is valid only inside that function.
+ * You should not store it or allow it escape someway, unless you made a snapshot of it.
+ * Several last char sequences may have less characters than the given [size].
+ * 
+ * Both [size] and [step] must be positive and can be greater than the number of elements in this char sequence.
+ * @param size the number of elements to take in each window
+ * @param step the number of elements to move window forward on an each step
+ */
 @SinceKotlin("1.2")
 public header fun <R> CharSequence.windowed(size: Int, step: Int, transform: (CharSequence) -> R): List<R>
 
+/**
+ * Returns a sequence of snapshots of the window of the given [size]
+ * sliding along this char sequence with the given [step], where each
+ * snapshot is a string.
+ * 
+ * Several last strings may have less characters than the given [size].
+ * 
+ * Both [size] and [step] must be positive and can be greater than the number of elements in this char sequence.
+ * @param size the number of elements to take in each window
+ * @param step the number of elements to move window forward on an each step
+ */
 @SinceKotlin("1.2")
 public header fun CharSequence.windowedSequence(size: Int, step: Int): Sequence<String> 
 
+/**
+ * Returns a sequence of results of applying the given [transform] function to
+ * an each char sequence representing a view over the window of the given [size]
+ * sliding along this char sequence with the given [step].
+ * 
+ * Note that the char sequence passed to the [transform] function is ephemeral and is valid only inside that function.
+ * You should not store it or allow it escape someway, unless you made a snapshot of it.
+ * Several last char sequences may have less characters than the given [size].
+ * 
+ * Both [size] and [step] must be positive and can be greater than the number of elements in this char sequence.
+ * @param size the number of elements to take in each window
+ * @param step the number of elements to move window forward on an each step
+ */
 @SinceKotlin("1.2")
 public header fun <R> CharSequence.windowedSequence(size: Int, step: Int, transform: (CharSequence) -> R): Sequence<R> 
 
